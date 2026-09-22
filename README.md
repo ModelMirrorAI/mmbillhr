@@ -13,6 +13,7 @@ All parameter values are illustrative, not calibrated to data.
 ```bash
 pip install -r requirements.txt
 python scripts/generate_tables.py     # writes tables/*.csv and tables/*.md
+python scripts/generate_charts.py     # writes charts/*.svg (light and dark) and charts/*.png
 python -m pytest tests
 ```
 
@@ -33,7 +34,8 @@ hour and `l0` associate hours; baseline price is `P0 = r_S + r_J*l0`.
 
 **Step 1 — Hours compression.** `phi_i = (1 - a_i) + a_i/g` for tier i.
 Blended `phi_bar = (phi_S + l0*phi_J)/(1 + l0)`. In-house compression
-`phi_c = gap * phi_bar`.
+`phi_c = 1 - inhouse_adoption*(1 - phi_bar)`: in-house legal captures that share
+of the firms' hours savings (1 = the same, 0 = none).
 
 **Step 2 — Make-or-buy.** Matters indexed by complexity/stakes `s ∈ [0,1]`
 with density `Beta(s_a, s_b)` and value weight `v(s) = 1 + nu*s`. Costs in
@@ -42,7 +44,11 @@ units of in-house cost per baseline hour; `psi = P/P0`.
 - Outside: `mu * psi`
 - In-house, pre-AI: `1 + kappa*s + rho*s`
 - In-house, post-AI: `phi_c*(1 + kappa*(1 - delta(s))*s) + rho*s`,
-  with `delta(s) = min(1, 2*delta*(1 - s))` (leveling declines with complexity)
+  with `delta(s) = clip(delta*(1 + omega*(1 - 2s)), 0, 1)`. `delta` is the
+  leveling at mid-complexity (s = 0.5); `omega` sets how fast it fades with
+  complexity. At `omega = 1` leveling reaches zero on the hardest work (s = 1);
+  at `omega = 0` it is the same at every level. Whether AI can close the
+  expertise gap on the most specialised work is what `omega` encodes.
 
 Probability a matter is outsourced: `p = 1/(1 + exp(-(C_in - mu*psi)/tau))`.
 Share of clients able to insource: `eta0` pre-AI, `eta1 = min(1, eta0*phi_c^(-alpha_F))` post.
@@ -82,7 +88,8 @@ weighted by share × baseline margin, hours by baseline hours per revenue dollar
 | `kappa` | in-house expertise penalty slope |
 | `rho` | insurance/reputation value of outside counsel |
 | `delta` | expertise leveling at mid-complexity |
-| `gap` | in-house AI adoption relative to firms |
+| `omega` | how fast leveling fades with complexity (1 = gone at the top, 0 = flat) |
+| `inhouse_adoption` | share of firms' AI hours savings that in-house legal also captures |
 | `eta0` | share of clients able to insource pre-AI |
 | `s_a`, `s_b` | Beta shape of matter distribution over `s` |
 | `tau`, `nu`, `alpha_F` | choice softness, value weight slope, fixed-cost elasticity (global) |
@@ -104,6 +111,8 @@ mmbillhr/params.py   parameter dataclasses and defaults
 mmbillhr/model.py    SegmentModel, Results, firm_mix
 mmbillhr/grid.py     run_all, sweep, grid2d
 scripts/generate_tables.py
+scripts/generate_charts.py
 tables/             generated CSV + Markdown (see tables/README.md)
+charts/             generated SVG (light/dark) + PNG
 tests/
 ```
