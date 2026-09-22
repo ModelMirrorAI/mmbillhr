@@ -11,6 +11,10 @@ from mmbillhr import DEFAULT_SEGMENTS, run_all, sweep, grid2d, firm_mix, Segment
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tables")
 os.makedirs(OUT, exist_ok=True)
+# Start clean so a renamed or dropped table does not linger in the repo.
+for f in os.listdir(OUT):
+    if f.endswith((".csv", ".md")):
+        os.remove(os.path.join(OUT, f))
 
 KEY = ["price", "book", "revenue", "assoc_hours", "partner_hours", "ppp", "lam", "dev_gain"]
 
@@ -69,7 +73,8 @@ sweeps = {
     "theta_mult": None,  # handled below
     "eps": [.2, .4, .6, .8, 1.0, 1.25, 1.5, 2.0],
     "g": [2, 3, 4, 6, 10],
-    "gap": [.7, .8, .9, 1.0, 1.1],
+    "inhouse_adoption": [0, .25, .5, .75, 1.0, 1.25],
+    "omega": [0, .25, .5, .75, 1.0, 1.5],
     "rho": [0, 1, 2, 3, 4, 6],
     "kappa": [2, 4, 6, 8],
     "a_J": [.3, .4, .5, .6, .7],
@@ -93,7 +98,8 @@ save("03_sweep_theta", df[["theta", "margin0"] + KEY], PCT,
      "theta scaled by a multiple of each segment's default. n/a = no equilibrium.")
 
 # 4. Two-parameter grids, ppp and revenue, per segment
-grids = [("delta", [0, .2, .4, .6, .8], "beta", [0, .25, .5, .75, 1.0]),
+grids = [("omega", [0, .5, 1.0, 1.5], "delta", [0, .2, .4, .6, .8]),
+         ("delta", [0, .2, .4, .6, .8], "beta", [0, .25, .5, .75, 1.0]),
          ("delta", [0, .2, .4, .6, .8], "eps", [.2, .5, .8, 1.2, 1.6]),
          ("rho", [0, 1, 2, 4, 6], "delta", [0, .2, .4, .6, .8]),
          ("g", [2, 3, 4, 6, 10], "a_J", [.3, .45, .6, .75])]
