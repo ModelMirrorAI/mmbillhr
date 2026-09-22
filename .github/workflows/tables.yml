@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read-only unless a job asks for more.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,12 +23,15 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m pytest -q tests
 
-  tables:
+  outputs:
     needs: test
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write          # only this job may push
+    concurrency:
+      group: outputs-${{ github.ref }}
+      cancel-in-progress: false  # queue runs so two never push at once
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,14 +40,16 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python scripts/generate_tables.py
-      - name: Commit regenerated tables if changed
+      - run: python scripts/generate_charts.py
+      - name: Commit regenerated tables and charts if changed
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add tables
+          git add tables charts
           if git diff --cached --quiet; then
-            echo "Tables unchanged."
+            echo "Tables and charts unchanged."
           else
-            git commit -m "Regenerate tables [skip ci]"
+            git commit -m "Regenerate tables and charts [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
             git push
           fi
