@@ -38,7 +38,7 @@ def to_md(df: pd.DataFrame, pct_cols=None, decimals=2) -> str:
 
 
 def save(name, df, pct_cols=None, note=""):
-    df.to_csv(os.path.join(OUT, name + ".csv"))
+    df.round(6).to_csv(os.path.join(OUT, name + ".csv"))  # rounded to avoid float-noise diffs
     with open(os.path.join(OUT, name + ".md"), "w") as f:
         f.write(f"# {name}\n\n{note}\n\n" + to_md(df, pct_cols) + "\n")
     print("wrote", name)
