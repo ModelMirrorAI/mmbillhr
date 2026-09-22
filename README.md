@@ -1,4 +1,4 @@
-# mmbillhr
+# AI x Billable Hours Model
 
 An economic model of how AI affects billable-hours law firms. Four lines of work
 (premium, commodity-elite, mid-market, small-client) run through hours
