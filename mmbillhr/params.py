@@ -32,11 +32,15 @@ class SegmentParams:
     mu: float    # outside rate as multiple of in-house cost per hour
     kappa: float # in-house expertise penalty slope (kappa_bar)
     rho: float   # insurance/reputation value of outside counsel slope (rho_bar)
-    delta: float # expertise leveling at mid-complexity; delta(s) = min(1, 2*delta*(1-s))
-    gap: float   # in-house adoption relative to firms (phi_c = gap * phi_bar)
+    delta: float # expertise leveling at mid-complexity (s = 0.5)
+    inhouse_adoption: float  # share of firms' AI hours savings that in-house legal also captures
+                             # (phi_c = 1 - inhouse_adoption*(1 - phi_bar); 1 = same as firms, 0 = none)
     eta0: float  # share of clients able to insource before AI
     s_a: float   # Beta(a, b) shape of matter distribution over s
     s_b: float
+    omega: float = 1.0  # how fast leveling fades with complexity:
+                        # delta(s) = clip(delta*(1 + omega*(1 - 2s)), 0, 1)
+                        # 1 = fades to zero at s = 1 (no leveling on the hardest work); 0 = flat
 
     def with_(self, **kw) -> "SegmentParams":
         return replace(self, **kw)
@@ -45,14 +49,14 @@ class SegmentParams:
 DEFAULT_SEGMENTS = {
     "Premium": SegmentParams("Premium", a_J=.40, a_S=.15, l0=2.0, r_S=1800, r_J=1000, w_J=400,
                              eps=.2, theta=1.3, beta=.25, mu=4.5, kappa=4, rho=4, delta=.4,
-                             gap=.9, eta0=.95, s_a=12, s_b=2),
+                             inhouse_adoption=.9, eta0=.95, s_a=12, s_b=2),
     "Commodity-elite": SegmentParams("Commodity-elite", a_J=.55, a_S=.25, l0=4.5, r_S=1300, r_J=850, w_J=400,
                                      eps=.6, theta=2.5, beta=1.0, mu=4, kappa=4, rho=2, delta=.4,
-                                     gap=.9, eta0=.95, s_a=6, s_b=4),
+                                     inhouse_adoption=.9, eta0=.95, s_a=6, s_b=4),
     "Mid": SegmentParams("Mid", a_J=.50, a_S=.20, l0=2.0, r_S=800, r_J=500, w_J=250,
                          eps=.8, theta=1.5, beta=1.0, mu=3, kappa=4, rho=1, delta=.4,
-                         gap=.9, eta0=.5, s_a=4, s_b=4),
+                         inhouse_adoption=.9, eta0=.5, s_a=4, s_b=4),
     "Small": SegmentParams("Small", a_J=.55, a_S=.35, l0=0.5, r_S=350, r_J=200, w_J=120,
                            eps=1.5, theta=1.55, beta=1.0, mu=3, kappa=8, rho=2, delta=.5,
-                           gap=1.0, eta0=1.0, s_a=2, s_b=4),
+                           inhouse_adoption=1.0, eta0=1.0, s_a=2, s_b=4),
 }

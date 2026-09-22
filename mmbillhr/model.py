@@ -52,8 +52,8 @@ class SegmentModel:
         self.S = np.linspace(0.0005, 0.9995, g.n_grid)
         self.phi_J, self.phi_S = phi(p.a_J, g.g), phi(p.a_S, g.g)
         phi_bar = (self.phi_S + p.l0 * self.phi_J) / (1 + p.l0)
-        self.phi_c = p.gap * phi_bar
-        self.delta_s = np.clip(2 * p.delta * (1 - self.S), 0, 1)
+        self.phi_c = 1 - p.inhouse_adoption * (1 - phi_bar)
+        self.delta_s = np.clip(p.delta * (1 + p.omega * (1 - 2 * self.S)), 0, 1)
         self.f = beta_dist.pdf(self.S, p.s_a, p.s_b)
         self.v = 1 + g.nu * self.S
         self.W = np.trapezoid(self.f * self.v, self.S)
