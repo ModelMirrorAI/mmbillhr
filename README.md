@@ -116,3 +116,12 @@ tables/             generated CSV + Markdown (see tables/README.md)
 charts/             generated SVG (light/dark) + PNG
 tests/
 ```
+
+## Contributing
+
+Changes reach `main` by pull request. The `test-and-tables` workflow runs the
+tests on every pull request; once a change lands on `main`, it regenerates
+`tables/` and `charts/` and opens a pull request titled "Regenerate tables and
+charts" from the `bot/regenerate-outputs` branch, so the committed outputs are
+reviewed like any other change. A pull request may also carry its own
+regenerated outputs, in which case the bot finds nothing to propose.
