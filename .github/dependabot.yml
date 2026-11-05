@@ -1,0 +1,24 @@
+version: 2
+updates:
+  # Keep the SHA-pinned workflow actions fresh; zizmor requires the pins, so
+  # Dependabot is how they get version and security bumps.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # requirements.txt pins exact versions so the committed tables reproduce;
+  # one grouped weekly PR moves them together. Security updates still arrive
+  # on their own as soon as an advisory lands.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      pip:
+        patterns:
+          - "*"
